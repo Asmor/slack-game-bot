@@ -15,8 +15,8 @@ var RR = storage.getItem("RR") || {
 
 var slack;
 
-RR.init = function (slack) {
-	slack = slack;
+RR.init = function (_slack) {
+	slack = _slack;
 }
 
 RR.run = function (message) {
