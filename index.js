@@ -50,7 +50,7 @@ RR.run = function (message) {
 	var hit = Math.floor(Math.random() * 6) === 0;
 
 	if ( hit ) {
-		messages.push("*BANG* " + user.name + " was shot!");
+		messages.push(":skull::gun: *BANG* " + user.name + " was shot!");
 
 		if ( userInfo.misses ) {
 			messages.push("They had survived " + userInfo.misses + " time(s).");
@@ -66,7 +66,7 @@ RR.run = function (message) {
 		userInfo.bangs++;
 		messages.push("This is the " + conjugateNumber(userInfo.bangs) + " time " + user.name + " has been shot.");
 	} else {
-		messages.push("_click_ " + user.name + " is safe");
+		messages.push(":relieved::gun: _click_ " + user.name + " is safe");
 
 		userInfo.misses++;
 		userInfo.clicks++;
