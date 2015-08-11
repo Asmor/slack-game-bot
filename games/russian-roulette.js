@@ -19,7 +19,7 @@ RR.run = function (args) {
 	var channel = args.channel;
 	var messagesOut = [];
 
-	if ( !user || user.name === "gamemaster" || !channel || channel.name !== "russian-roulette" ) {
+	if ( channel.name !== "russian-roulette" ) {
 		return;
 	}
 

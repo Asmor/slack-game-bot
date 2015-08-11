@@ -29,6 +29,10 @@ slack.on("message", function(message) {
 		channel: channel,
 	};
 
+	if ( !user || !channel || user.name === "gamemaster") {
+		return;
+	}
+
 	var messages = [];
 
 	[
