@@ -23,17 +23,43 @@ RR.run = function (args) {
 		return;
 	}
 
-	if ( !message.text.match(/russian.roulette/i) ) {
+	var rouletteMatch = message.text.match(/(ch?at)?.?roulette/i);
+
+	if ( !rouletteMatch ) {
 		return;
 	}
 
+	var type = rouletteMatch[1];
+
+	var target = {
+		hit: ":skull:",
+		miss: ":relieved:",
+	};
+
+	var weapon = {
+		hit: ":gun: *BANG* " + user.name + " was shot!",
+		miss: ":gun: _click_",
+	};
+
+	if ( type === "cat" ) {
+		target.hit = ":scream_cat:";
+		target.miss = ":smile_cat:";
+	} else if ( type === "chat" ) {
+		target.hit = ":scream:";
+		target.miss = ":sweat:";
+		weapon.hit = ":eggplant: *CENSORED* " + user.name + " found the eggplant!";
+		weapon.miss = ":question:";
+	}
 
 	var userInfo = RR.getUser(user);
 
 	var hit = Math.floor(Math.random() * 6) === 0;
 
+	var hitKey = hit ? "hit" : "miss";
+
+	messagesOut.push(target[hitKey] + weapon[hitKey]);
+
 	if ( hit ) {
-		messagesOut.push(":skull::gun: *BANG* " + user.name + " was shot!");
 
 		if ( userInfo.misses ) {
 			messagesOut.push("They had survived " + userInfo.misses + " time(s).");
@@ -41,21 +67,17 @@ RR.run = function (args) {
 		}
 
 		if ( RR.misses ) {
-			messagesOut.push("There have been " + RR.misses + " misses since the last person was shot.");
+			messagesOut.push("There have been " + RR.misses + " misses since the last person lost.");
 			RR.misses = 0;
 		}
 
 		RR.stats.bangs++;
 		userInfo.bangs++;
-		messagesOut.push("This is the " + conjugateNumber(userInfo.bangs) + " time " + user.name + " has been shot.");
+		messagesOut.push("This is the " + conjugateNumber(userInfo.bangs) + " time " + user.name + " has lost.");
 	} else {
-		messagesOut.push(":relieved::gun: _click_ " + user.name + " is safe");
-
 		userInfo.misses++;
 		userInfo.clicks++;
-
 		RR.misses++;
-
 		RR.stats.clicks++;
 	}
 
