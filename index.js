@@ -2,6 +2,9 @@
 
 var Slack = require("slack-client");
 var config = require("./config");
+var storage = require("node-persist");
+
+storage.initSync();
 
 var token = config.botToken;
 console.log(token);
@@ -22,7 +25,7 @@ slack.on("message", function(message) {
 	RR.run(message);
 });
 
-var RR = {
+var RR = storage.getItem("RR") || {
 	misses: 0,
 	users: {},
 	stats: {
@@ -77,6 +80,8 @@ RR.run = function (message) {
 	}
 
 	channel.send(messages.join(" "));
+
+	storage.setItem("RR", RR);
 };
 
 RR.getUser = function (user) {
