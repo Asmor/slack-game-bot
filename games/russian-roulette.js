@@ -13,17 +13,11 @@ var RR = storage.getItem("RR") || {
 	},
 };
 
-var slack;
-
-RR.init = function (_slack) {
-	slack = _slack;
-};
-
-RR.run = function (message) {
-	var user = slack.getUserByID(message.user);
-	var channel = slack.getChannelGroupOrDMByID(message.channel);
-	var messages = [];
-	// console.log(user);
+RR.run = function (args) {
+	var message = args.message;
+	var user = args.user;
+	var channel = args.channel;
+	var messagesOut = [];
 
 	if ( !user || user.name === "gamemaster" || !channel || channel.name !== "russian-roulette" ) {
 		return;
@@ -33,28 +27,29 @@ RR.run = function (message) {
 		return;
 	}
 
+
 	var userInfo = RR.getUser(user);
 
 	var hit = Math.floor(Math.random() * 6) === 0;
 
 	if ( hit ) {
-		messages.push(":skull::gun: *BANG* " + user.name + " was shot!");
+		messagesOut.push(":skull::gun: *BANG* " + user.name + " was shot!");
 
 		if ( userInfo.misses ) {
-			messages.push("They had survived " + userInfo.misses + " time(s).");
+			messagesOut.push("They had survived " + userInfo.misses + " time(s).");
 			userInfo.misses = 0;
 		}
 
 		if ( RR.misses ) {
-			messages.push("There have been " + RR.misses + " misses since the last person was shot.");
+			messagesOut.push("There have been " + RR.misses + " misses since the last person was shot.");
 			RR.misses = 0;
 		}
 
 		RR.stats.bangs++;
 		userInfo.bangs++;
-		messages.push("This is the " + conjugateNumber(userInfo.bangs) + " time " + user.name + " has been shot.");
+		messagesOut.push("This is the " + conjugateNumber(userInfo.bangs) + " time " + user.name + " has been shot.");
 	} else {
-		messages.push(":relieved::gun: _click_ " + user.name + " is safe");
+		messagesOut.push(":relieved::gun: _click_ " + user.name + " is safe");
 
 		userInfo.misses++;
 		userInfo.clicks++;
@@ -64,9 +59,9 @@ RR.run = function (message) {
 		RR.stats.clicks++;
 	}
 
-	channel.send(messages.join(" "));
-
 	storage.setItem("RR", RR);
+
+	return messagesOut;
 };
 
 RR.getUser = function (user) {

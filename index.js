@@ -9,7 +9,6 @@ console.log(token);
 var slack = new Slack(token, true, true);
 
 var RR = require ("./games/russian-roulette");
-RR.init(slack);
 
 slack.on("open", function (){
 	console.log('Welcome to Slack. You are ' + slack.self.name + ' of ' + slack.team.name);
@@ -22,7 +21,27 @@ slack.on("open", function (){
 });
 
 slack.on("message", function(message) {
-	RR.run(message);
+	var user = slack.getUserByID(message.user);
+	var channel = slack.getChannelGroupOrDMByID(message.channel);
+	var payload = {
+		message: message,
+		user: user,
+		channel: channel,
+	};
+
+	var messages = [];
+
+	[
+		RR.run(payload),
+	].forEach(function (newMessages) {
+		if ( newMessages && newMessages.length ) {
+			messages = messages.concat(newMessages);
+		}
+	});
+	
+	if ( messages.length ) {
+		channel.send(messages.join(" "));
+	}
 });
 
 slack.login();
