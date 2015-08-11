@@ -37,14 +37,11 @@ RR.run = function (message) {
 	var messages = [];
 	// console.log(user);
 
-	// if ( !user || !channel || !channel.name === "russian-roulette" ) {
-	if ( !user || user.name === "gamemaster" || !channel || !channel.name === "itoltz" ) {
-		console.log("Bad message");
+	if ( !user || user.name === "gamemaster" || !channel || !channel.name === "russian-roulette" ) {
 		return;
 	}
 
 	if ( !message.text.match(/russian.roulette/i) ) {
-		console.log("No RR here");
 		return;
 	}
 
