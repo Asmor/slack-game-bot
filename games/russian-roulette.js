@@ -17,7 +17,7 @@ var slack;
 
 RR.init = function (_slack) {
 	slack = _slack;
-}
+};
 
 RR.run = function (message) {
 	var user = slack.getUserByID(message.user);
@@ -25,7 +25,7 @@ RR.run = function (message) {
 	var messages = [];
 	// console.log(user);
 
-	if ( !user || user.name === "gamemaster" || !channel || !channel.name === "russian-roulette" ) {
+	if ( !user || user.name === "gamemaster" || !channel || channel.name !== "russian-roulette" ) {
 		return;
 	}
 

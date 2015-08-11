@@ -1,7 +1,8 @@
 {
 	"globalstrict": true,
 	"globals": {
-		"require": false
+		"require": false,
+		"module": false
 	},
 	"devel": true
 }
