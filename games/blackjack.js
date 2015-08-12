@@ -314,7 +314,7 @@ function resolve(args) {
 				lost(userData);
 				args.messagesOut.push(userData.name + " lost $10.");
 			}
-			args.messagesOut.push(score(userData));
+			args.messagesOut.push(score(userData) + "\n");
 		});
 	}
 
