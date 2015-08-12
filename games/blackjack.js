@@ -14,6 +14,7 @@ data.dealerHand = data.dealerHand || [];
 data.deck = data.deck || generateFreshDeck();
 data.playersIn = data.playersIn || 0;
 data.state = data.state || "waiting";
+data.users = {};
 
 var BJ = {};
 module.exports = BJ;
@@ -21,6 +22,12 @@ module.exports = BJ;
 BJ.run = function (args) {
 	var message = args.message;
 	var channel = args.channel;
+
+	if ( channel.name !== "blackjack" ) {
+		console.log("Not in blackjack");
+		return;
+	}
+
 	var userData = getUser(args.user);
 	var messagesOut = [];
 
@@ -29,7 +36,7 @@ BJ.run = function (args) {
 
 	stateMachine[data.state](args);
 
-	storage.set("BJ", data);
+	storage.setItem("BJ", data);
 	return messagesOut;
 };
 
@@ -45,7 +52,10 @@ var stateMachine = {
 			deal(args);
 		}
 	},
-	dealt: function (args) {},
+	dealt: function (args) {
+		args.messagesOut.push("Resetting");
+		reset();
+	},
 	resolving: function (args) {},
 };
 
@@ -78,6 +88,11 @@ function deal(args) {
 
 	Object.keys(data.users).forEach(function (key) {
 		var userData = getUser(data.users[key]);
+
+		if ( userData.status !== "in" ) {
+			return;
+		}
+
 		var messages = [];
 
 		while ( userData.hand.length < 2 ) {
@@ -94,8 +109,11 @@ function deal(args) {
 			userData.blackjacks++;
 			userData.wins++;
 		} else {
+			messages.push("Total: " + handResult.value + " .");
 			data.playersIn++;
 		}
+
+		args.channel.send(messages.join(" "));
 	});
 
 	if ( !data.playersIn ) {
