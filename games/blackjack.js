@@ -53,6 +53,12 @@ var stateMachine = {
 		}
 	},
 	dealt: function (args) {
+		if ( args.userData.status === "standing" && args.message.text.match(/\bcontinue\b/i) ) {
+			args.messagesOut.push("Forcing resolution.");
+			resolve(args);
+			return;
+		}
+
 		if ( args.userData.status !== "in" ) {
 			return;
 		}
