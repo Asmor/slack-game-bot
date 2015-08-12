@@ -10,6 +10,7 @@ var storage = require("node-persist");
 storage.initSync();
 
 var data = storage.getItem("BJ") || {};
+// var data = {};
 data.dealerHand = data.dealerHand || [];
 data.deck = data.deck || generateFreshDeck();
 data.playersIn = data.playersIn || 0;
@@ -24,7 +25,6 @@ BJ.run = function (args) {
 	var channel = args.channel;
 
 	if ( channel.name !== "blackjack" ) {
-		console.log("Not in blackjack");
 		return;
 	}
 
@@ -53,11 +53,71 @@ var stateMachine = {
 		}
 	},
 	dealt: function (args) {
-		args.messagesOut.push("Resetting");
-		reset();
+		if ( args.userData.status !== "in" ) {
+			return;
+		}
+
+		var handResult;
+		if ( args.message.text.match(/\bhit\b/i) ) {
+			var newCard = draw(args);
+
+			args.messagesOut.push(args.userData.name + " drew " + getCardText(newCard) + " .");
+			args.userData.hand.push(newCard);
+
+			handResult = calculateHand(args.userData.hand);
+
+			args.messagesOut.push("You're holding: " + handResult.string + " .");
+
+			if ( handResult.value > 21 ) {
+				args.userData.losses++;
+				args.userData.busts++;
+				args.userData.score -= 10;
+				data.playersIn--;
+				args.messagesOut.push("You busted! You lose $10.");
+				args.messagesOut.push(score(args.userData));
+				drop(args.userData);
+			} else {
+				args.messagesOut.push("Total: " + handResult.value + " .");
+			}
+		} else if ( args.message.text.match(/\bstand\b/i) ) {
+			handResult = calculateHand(args.userData.hand);
+			args.userData.status = "standing";
+			args.messagesOut.push(args.userData.name + " stands with " + handResult.string + ". Total: " + handResult.value + " .");
+			data.playersIn--;
+		}
+
+		if ( !data.playersIn ) {
+			resolve(args);
+		}
 	},
 	resolving: function (args) {},
 };
+
+function allLose(args) {
+	Object.keys(data.users).forEach(function (key) {
+		var userData = getUser(data.users[key]);
+		if ( userData.status === "out" ) {
+			return;
+		}
+		
+		lost(userData);
+		args.messagesOut.push(userData.name + " lost $10.");
+		args.messagesOut.push(score(userData));
+	});
+}
+
+function allWin(args) {
+	Object.keys(data.users).forEach(function (key) {
+		var userData = getUser(data.users[key]);
+		if ( userData.status === "out" ) {
+			return;
+		}
+
+		won(userData);
+		args.messagesOut.push(userData.name + " won $10.");
+		args.messagesOut.push(score(userData));
+	});
+}
 
 function calculateHand(hand) {
 	var result = {
@@ -104,10 +164,11 @@ function deal(args) {
 		messages.push(userData.name + " was dealt: " + handResult.string + " .");
 
 		if ( handResult.value === 21 ) {
-			messages.push("Blackjack! You win $15!");
 			userData.score += 15;
 			userData.blackjacks++;
 			userData.wins++;
+			messages.push("Blackjack! You win $15!");
+			messages.push(score(userData));
 		} else {
 			messages.push("Total: " + handResult.value + " .");
 			data.playersIn++;
@@ -176,6 +237,7 @@ function getUser(user) {
 	var userData = data.users[user.id] = data.users[user.id] || {};
 	userData.wins = userData.wins || 0;
 	userData.losses = userData.losses || 0;
+	userData.pushes = userData.pushes || 0;
 	userData.busts = userData.busts || 0;
 	userData.blackjacks = userData.blackjacks || 0;
 	userData.score = userData.score || 0;
@@ -187,11 +249,79 @@ function getUser(user) {
 	return userData;
 }
 
+function lost(userData) {
+	userData.score -= 10;
+	userData.losses++;
+}
+
 function reset() {
 	dropAll();
 	data.state = "waiting";
 	data.dealerHand.length = 0;
 	data.playersIn = 0;
+}
+
+function resolve(args) {
+	var handResult = calculateHand(data.dealerHand);
+	var newCard;
+
+	args.channel.send(args.messagesOut.join(" "));
+	args.messagesOut.length = 0;
+
+	data.state = "resolving";
+
+	args.channel.send("Dealer has " + handResult.string + ".");
+
+	if ( handResult.value === 21 ) {
+		args.channel.send("Blackjack! Everyone loses.");
+		allLose(args);
+	}
+
+	while ( handResult.value < 17 ) {
+		newCard = draw(args);
+		data.dealerHand.push(newCard);
+		args.channel.send("Draws " + getCardText(newCard) + ".");
+		handResult = calculateHand(data.dealerHand);
+	}
+
+	if ( handResult.value > 21 ) {
+		args.channel.send("Dealer busts! Everyone wins!");
+		allWin(args);
+	} else {
+		args.channel.send("Dealer has " + handResult.value + ".");
+
+		Object.keys(data.users).forEach(function (key) {
+			var userData = getUser(data.users[key]);
+			if ( userData.status === "out" ) {
+				return;
+			}
+
+			var playerResult = calculateHand(userData.hand).value;
+
+			if ( playerResult > handResult.value ) {
+				won(userData);
+				args.messagesOut.push(userData.name + " won $10.");
+			} else if ( playerResult === handResult.value ) {
+				args.messagesOut.push(userData.name + " pushed.");
+				userData.pushes++;
+			} else {
+				lost(userData);
+				args.messagesOut.push(userData.name + " lost $10.");
+			}
+			args.messagesOut.push(score(userData));
+		});
+	}
+
+	reset();
+}
+
+function score(userData) {
+	return "Now at: $" + userData.score;
+}
+
+function won(userData) {
+	userData.score += 10;
+	userData.wins++;
 }
 
 // Fisher-Yates via http://bost.ocks.org/mike/shuffle/
