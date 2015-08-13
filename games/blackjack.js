@@ -323,7 +323,7 @@ function resolve(args) {
 
 function score(userData) {
   if ( userData.score < 0 ) {
-    return "Now at: -$" + userData.score*-1;
+    return "Now at: -$" + (userData.score * -1);
   }
   else {
     return "Now at: $" + userData.score;
