@@ -84,6 +84,10 @@ var stateMachine = {
 				drop(args.userData);
 			} else {
 				args.messagesOut.push("Total: " + handResult.value + " .");
+				if ( handResult.value === 21 ) {
+					args.userData.status = "standing";
+					args.messagesOut.push("Automatically standing.");
+				}
 			}
 		} else if ( args.message.text.match(/\bstand\b/i) ) {
 			handResult = calculateHand(args.userData.hand);
