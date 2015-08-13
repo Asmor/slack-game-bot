@@ -358,7 +358,6 @@ function resolveDealerBlackjack(args) {
 			drop(userData);
 		} else {
 			lost(userData);
-			userData.score -= 10;
 			userMessages.push("You lose $10.");
 			userMessages.push(score(userData));
 		}
