@@ -258,6 +258,7 @@ function getUser(user) {
 function lost(userData) {
 	userData.score -= 10;
 	userData.losses++;
+	drop(userData);
 }
 
 function reset() {
@@ -333,6 +334,7 @@ function score(userData) {
 function won(userData) {
 	userData.score += 10;
 	userData.wins++;
+	drop(userData);
 }
 
 // Fisher-Yates via http://bost.ocks.org/mike/shuffle/
