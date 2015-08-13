@@ -151,6 +151,19 @@ function calculateHand(hand) {
 
 function deal(args) {
 	data.playersIn = 0;
+	data.dealerHand.length = 0;
+
+	while ( data.dealerHand.length < 2 ) {
+		data.dealerHand.push(draw(args));
+	}
+
+	var dealerHandInitialResult = calculateHand(data.dealerHand);
+
+	if ( dealerHandInitialResult.value === 21 ) {
+		args.messagesOut.push("Dealer has Blackjack! " + dealerHandInitialResult.string);
+		resolveDealerBlackjack(args);
+		return;
+	}
 
 	Object.keys(data.users).forEach(function (key) {
 		var userData = getUser(data.users[key]);
@@ -187,10 +200,6 @@ function deal(args) {
 		args.messagesOut.push("No users in game, resetting");
 		reset();
 		return;
-	}
-
-	while ( data.dealerHand.length < 2 ) {
-		data.dealerHand.push(draw(args));
 	}
 
 	args.messagesOut.push("Dealer is showing: " + getCardText(data.dealerHand[0]) + ".");
@@ -279,11 +288,6 @@ function resolve(args) {
 
 	args.channel.send("Dealer has " + handResult.string + ".");
 
-	if ( handResult.value === 21 ) {
-		args.channel.send("Blackjack! Everyone loses.");
-		allLose(args);
-	}
-
 	while ( handResult.value < 17 ) {
 		newCard = draw(args);
 		data.dealerHand.push(newCard);
@@ -318,6 +322,40 @@ function resolve(args) {
 			args.messagesOut.push(score(userData) + "\n");
 		});
 	}
+
+	reset();
+}
+
+function resolveDealerBlackjack(args) {
+	data.state = "resolving";
+
+	// Special case, dealer has blackjack. So we'll deal everyone out their initial hand in case
+	// they also have blackjack, and then immediately resolve
+	Object.keys(data.users).forEach(function (key) {
+		var userData = getUser(data.users[key]);
+
+		while ( userData.hand.length < 2 ) {
+			userData.hand.push(draw(args));
+		}
+
+		var handResult = calculateHand(userData.hand);
+
+		var userMessages = [ userData.name + " has " + handResult.string + "." ];
+
+		// If they've also got blackjack, they push. Otherwise they lose.
+		if ( handResult.value === 21 ) {
+			userMessages.push("Push.");
+			userData.pushes++;
+			drop(userData);
+		} else {
+			lost(userData);
+			userData.score -= 10;
+			userMessages.push("You lose $10.");
+			userMessages.push(score(userData));
+		}
+
+		args.messagesOut.push(userMessages.join(" "));
+	});
 
 	reset();
 }
