@@ -87,6 +87,7 @@ var stateMachine = {
 				if ( handResult.value === 21 ) {
 					args.userData.status = "standing";
 					args.messagesOut.push("Automatically standing.");
+					data.playersIn--;
 				}
 			}
 		} else if ( args.message.text.match(/\bstand\b/i) ) {
