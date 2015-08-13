@@ -339,6 +339,10 @@ function resolveDealerBlackjack(args) {
 	Object.keys(data.users).forEach(function (key) {
 		var userData = getUser(data.users[key]);
 
+		if ( userData.status === "out" ) {
+			return;
+		}
+
 		while ( userData.hand.length < 2 ) {
 			userData.hand.push(draw(args));
 		}
