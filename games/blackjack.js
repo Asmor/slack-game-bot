@@ -15,7 +15,7 @@ data.dealerHand = data.dealerHand || [];
 data.deck = data.deck || generateFreshDeck();
 data.playersIn = data.playersIn || 0;
 data.state = data.state || "waiting";
-data.users = {};
+data.users = data.users || {};
 
 var BJ = {};
 module.exports = BJ;
