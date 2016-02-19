@@ -49,7 +49,7 @@ function generate(wordList, seed) {
 		currentWord = getWord(wordList, currentWord);
 	}
 
-	return newText.join(" ");
+	return newText.join("");
 }
 
 function getWord(wordList, word) {
@@ -63,7 +63,16 @@ function getWord(wordList, word) {
 
 	var index = Math.floor(Math.random() * potentialNext.length);
 
-	return potentialNext[index];
+	var word = potentialNext[index];
+
+	var space = " ";
+
+	if ( !word.match(/\w/) ) {
+		// Probably punctuation... I hope?
+		space = "";
+	}
+
+	return potentialNext[index] + space;
 }
 
 function getUser(user) {
