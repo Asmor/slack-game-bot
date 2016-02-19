@@ -43,7 +43,7 @@ function generate(wordList, seed) {
 	var newText = [];
 	var i = 0;
 
-	while ( currentWord !== "END" && i < 1000 ) {
+	while ( currentWord !== "\n" && i < 1000 ) {
 		i++;
 		newText.push(currentWord);
 		currentWord = getWord(wordList, currentWord);
