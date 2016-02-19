@@ -10,6 +10,7 @@ var slack = new Slack(token, true, true);
 
 var RR = require ("./games/russian-roulette");
 var BJ = require ("./games/blackjack");
+var Markov = require ("./games/markov");
 
 slack.on("open", function (){
 	console.log('Welcome to Slack. You are ' + slack.self.name + ' of ' + slack.team.name);
@@ -39,6 +40,7 @@ slack.on("message", function(message) {
 	[
 		RR.run(payload),
 		BJ.run(payload),
+		Markov.run(payload),
 	].forEach(function (newMessages) {
 		if ( newMessages && newMessages.length ) {
 			messages = messages.concat(newMessages);
