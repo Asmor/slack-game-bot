@@ -24,7 +24,7 @@ Markov.run = function (args) {
 
 	if ( markovCheck && data[markovCheck[1]] ) {
 		// TODO: Need brackets?
-		return [generate(userData, "\t")];
+		return ['"' + generate(userData, "\t") + '" -' + args.user.name];
 	} else {
 		seedMarkov(message.text, userData);
 		storage.setItem("Markov", data);
