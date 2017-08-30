@@ -15,16 +15,17 @@ Markov.run = function (args) {
 	var channel = args.channel;
 	var userData = getUser(args.user);
 
-	if ( channel.name.match(/roulette|blackjack/i) || message.text.match(/http:\/\//i) ) {
+	if ( channel.name.match(/roulette|blackjack/i) || message.text.match(/https?:\/\//i) ) {
 		// Don't track peoples' messages in other game channels, or messages with full URLs
 		return;
 	}
 
 	var markovCheck = message.text.match(/^markov (.*)/);
+	var target;
 
 	if ( markovCheck && data[markovCheck[1]] ) {
-		// TODO: Need brackets?
-		return ['"' + generate(userData, "\t") + '" -' + args.user.name];
+		target = markovCheck[1];
+		return ['"' + generate(data[target], "\t") + '" -' + target];
 	} else {
 		seedMarkov(message.text, userData);
 		storage.setItem("Markov", data);
@@ -49,11 +50,31 @@ function generate(wordList, seed) {
 		currentWord = getWord(wordList, currentWord);
 	}
 
-	return newText.join("");
+	var message = "";
+
+	var word;
+	var first = true;
+
+	while ( word = newText.shift() ) {
+		if ( word.match(/\w/) && !first ) {
+			// Don't put spaces before punctuation or first word
+			message += " ";
+		}
+
+		first = false;
+
+		message += word;
+	}
+
+	return message;
 }
 
 function getWord(wordList, word) {
 	var potentialNext = [];
+
+	if ( !wordList || !word || !wordList[word] ) {
+		return '';
+	}
 
 	Object.keys(wordList[word]).forEach(function (nextWord) {
 		for ( var i = 0; i < wordList[word][nextWord]; i++ ) {
@@ -65,18 +86,11 @@ function getWord(wordList, word) {
 
 	var word = potentialNext[index];
 
-	var space = " ";
-
-	if ( !word.match(/\w/) ) {
-		// Probably punctuation... I hope?
-		space = "";
-	}
-
-	return potentialNext[index] + space;
+	return potentialNext[index];
 }
 
 function getUser(user) {
-	var userData = data.users[user.name] = data.users[user.name] || {};
+	var userData = data[user.name] = data[user.name] || {};
 
 	return userData;
 }
@@ -93,7 +107,9 @@ function addWord(wordList, word, index, context) {
 }
 
 function seedMarkov(text, userData) {
-	var words = text.toLowerCase().split(/\s*\b\s*/);
+	var words = text
+		.toLowerCase()
+		.split(/(?=[.,\s])\s*/);
 
 	// All whitespace is stripped, so use whitespace for control
 	// tabs are start of message
