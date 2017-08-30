@@ -28,3 +28,7 @@ Russian Roulette must be played in a channel (or private group) named `russian-r
 Russian Roulette must be played in a channel (or private group) named `blackjack`. To begin play, say `ante`. Once all players have anted, any player can start the game by saying `deal`. From there, each player can `hit` or `stand`. The game will automatically continue once all players have stood or busted out. If you need to force the game to continue, any player who has stood can say `continue`.
 
 Each game of Blackjack is played for $10, and a running score is kept. If you get blackjack, you'll win $15 instead of $10.
+
+## Markov
+
+Markov must be played in a channel (or a private group) where GameMaster has visibility.  To use the bot, simply type `markov USERNAME` to generate a sentence or expression based on the user's past chat history.  The more chat history the bot has to work with, the more data the bot will have to work with.
